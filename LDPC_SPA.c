@@ -16,19 +16,9 @@ int main(){
     time_t  start = clock();
 	
 	//***************************************************************************
-	//(1944,972)LDPC
+	//LDPC
 	//BPSK 1 or -1
 	
-	/*
-	const int n=1944;
-	const int k=972;
-	const double R=(double)k/n; //coderate
-	
-	//H   (n-k)*n
-	
-	int dv = 11;	//col weight
-	int dc = 8; //row weight
-	*/
 	
 	
 	FILE *fp1 = fopen("H_1944_972.txt", "r");
