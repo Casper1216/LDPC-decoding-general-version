@@ -21,7 +21,7 @@ int main(){
 	
 	
 	
-	FILE *fp1 = fopen("H_1944_972.txt", "r");
+	FILE *fp1 = fopen("H_648_324.txt", "r");
 	if (fp1 == NULL) {
         fprintf(stderr, "fopen() failed.\n");
         exit(EXIT_FAILURE);
@@ -183,7 +183,7 @@ int main(){
 	
 	//**********************************************
 	
-	int numtime =1000;
+	int numtime =10000;
 	int iteration = 50;	
 	
 	
@@ -371,7 +371,7 @@ int main(){
 				
 				
 				//§PÂ_symdrome
-				int* s = (int *)malloc(sizeof(int) * (n-k));
+				int* s = (int *)malloc(sizeof(int) * m);
 				bool iszerovector = true;
 				
 				for(int j=0;j<m;j++){
@@ -432,7 +432,7 @@ int main(){
 	
 	
 	//¼g¤JÀÉ®× CSV
-	FILE *fp = fopen("LDPC_1944_SPA.csv", "w");
+	FILE *fp = fopen("LDPC_SPA.csv", "w");
     
     //Á×§K¶}±Ò¥¢±Ñ 
     if (fp == NULL) {
