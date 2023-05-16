@@ -21,7 +21,7 @@ int main(){
 	
 	
 	
-	FILE *fp1 = fopen("H_648_324.txt", "r");
+	FILE *fp1 = fopen("H_96_48.txt", "r");
 	if (fp1 == NULL) {
         fprintf(stderr, "fopen() failed.\n");
         exit(EXIT_FAILURE);
@@ -159,7 +159,7 @@ int main(){
 	SNR_dB[4] = 1.6;
 	SNR_dB[5] = 2;
 	*/
-	SNR_dB[0] = 2;
+	SNR_dB[0] = 5;
 	
 	
 	//**********************************************
@@ -183,7 +183,7 @@ int main(){
 	
 	//**********************************************
 	
-	int numtime =10000;
+	int numtime =500000;
 	int iteration = 50;	
 	
 	
