@@ -148,18 +148,18 @@ int main(){
 	//SNR
 	const int SNR_L = 1;
 	double *SNR_dB = (double *)malloc(sizeof(double) * SNR_L);
-/*
-	SNR_dB[0] = 0;
-	SNR_dB[1] = 0.4;
+	/*
+	SNR_dB[0] = 4;
+	SNR_dB[1] = 4.5;
 	
-	SNR_dB[2] = 0.8;
+	SNR_dB[2] = 3.5;
 	
-	SNR_dB[3] = 1.2;
+	SNR_dB[3] = 4.5;
 	
 	SNR_dB[4] = 1.6;
 	SNR_dB[5] = 2;
 	*/
-	SNR_dB[0] = 6;
+	SNR_dB[0] = 5.5;
 	
 	
 	//**********************************************
@@ -212,6 +212,7 @@ int main(){
 			double* noise = (double *)malloc(sizeof(double) * n);
 			double U ,V ;
 			double sigma = sqrt((1/(2*R))*pow(10,-(SNR_dB[q]/10)));
+			
 			
 			for(int i=0;i<n;i++){
 				U = (double) rand() / (double)(RAND_MAX);	//uniform (0~1) 0<U<1
@@ -450,8 +451,8 @@ int main(){
 				fprintf(fp, "%E,",BER[j]);
 			else if(i==2)
 				fprintf(fp, "%E,",FER[j]);
-			else
-				fprintf(fp, "%E,",avgIter[j]/numtime);
+			//else
+				//fprintf(fp, "%E,",avgIter[j]/numtime);
 				
 		}	
 		
