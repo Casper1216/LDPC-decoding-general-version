@@ -1,0 +1,15 @@
+CPM : 150
+B 4*8
+
+
+DSS :
+
+cycle8: 139825
+
+IRCMS:
+
+cycle8: 453550
+
+QC PEG:
+
+cycle8: 116325
