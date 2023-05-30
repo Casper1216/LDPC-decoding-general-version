@@ -20,7 +20,7 @@ int main(){
 	
 	
 	
-	FILE *fp1 = fopen("H_96_48.txt", "r");
+	FILE *fp1 = fopen("H_1200_600 IRCMS.txt", "r");
 	if (fp1 == NULL) {
         fprintf(stderr, "fopen() failed.\n");
         exit(EXIT_FAILURE);
@@ -147,18 +147,15 @@ int main(){
 	//SNR
 	const int SNR_L = 1;
 	double *SNR_dB = (double *)malloc(sizeof(double) * SNR_L);
-	/*
-	SNR_dB[0] = 4;
-	SNR_dB[1] = 4.5;
 	
-	SNR_dB[2] = 3.5;
+	SNR_dB[0] = 3.25;
+	//SNR_dB[1] = 2.75;
+	//SNR_dB[2] = 2.5;
+	//SNR_dB[3] = 2.75;
+	// SNR_dB[4] = 1.6;
+	// SNR_dB[5] = 2;
 	
-	SNR_dB[3] = 4.5;
 	
-	SNR_dB[4] = 1.6;
-	SNR_dB[5] = 2;
-	*/
-	SNR_dB[0] = 4;
 	
 	
 	//**********************************************
@@ -182,7 +179,7 @@ int main(){
 	
 	//**********************************************
 	
-	int numtime =10000;
+	int numtime =1000000;
 	int iteration = 50;	
 	
 	
@@ -200,7 +197,7 @@ int main(){
 			
 			
 			if(counting==10000){
-				printf("%d\n",counting);
+				printf("%d\n",num+1);
 				counting=0;
 			}
 			counting++;
@@ -463,6 +460,7 @@ int main(){
 	
 	return 0;
 }
+
 
 
 
