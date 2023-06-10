@@ -148,10 +148,10 @@ int main(){
 	const int SNR_L = 1;
 	double *SNR_dB = (double *)malloc(sizeof(double) * SNR_L);
 	
-	SNR_dB[0] = 3.25;
-	//SNR_dB[1] = 2.75;
-	//SNR_dB[2] = 2.5;
-	//SNR_dB[3] = 2.75;
+	SNR_dB[0] = 2;
+	// SNR_dB[1] = 2.25;
+	// SNR_dB[2] = 2.5;
+	// SNR_dB[3] = 2.75;
 	// SNR_dB[4] = 1.6;
 	// SNR_dB[5] = 2;
 	
@@ -179,7 +179,7 @@ int main(){
 	
 	//**********************************************
 	
-	int numtime =1000000;
+	int numtime =1000;
 	int iteration = 50;	
 	
 	
@@ -197,7 +197,7 @@ int main(){
 			
 			
 			if(counting==10000){
-				printf("%d\n",num+1);
+				printf("%d\n",counting);
 				counting=0;
 			}
 			counting++;
@@ -460,7 +460,6 @@ int main(){
 	
 	return 0;
 }
-
 
 
 
