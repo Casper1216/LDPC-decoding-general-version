@@ -1,4 +1,3 @@
-
 #include<stdio.h>
 #include<stdlib.h>
 #include<time.h>
@@ -6,22 +5,16 @@
 #include<stdbool.h>
 #define pi acos(-1)
 
-
+void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** CN_set,int** VN_set,int* row,int* col,double* avgIter,double* SNR_dB,int SNR_L
+,int iteration, int numtime);
 
 
 int main(){
-	
 	srand(time(0));
-	// Start Record the time
-    time_t  start = clock();
-	
-	//***************************************************************************
 	//LDPC
 	//BPSK 1 or -1
 	
-	
-	
-	FILE *fp1 = fopen("H_96_48.txt", "r");
+	FILE *fp1 = fopen("H_1944_972.txt", "r");
 	if (fp1 == NULL) {
         fprintf(stderr, "fopen() failed.\n");
         exit(EXIT_FAILURE);
@@ -91,29 +84,76 @@ int main(){
 		}
 	}
 	
-	/*
-	for(int i=0;i<n;i++){
-		for(int j=0;j<col[i];j++){
-			printf("%d ",VN_set[i][j]);
-			
-		}
-		printf("\n");
-	}
-	for(int i=0;i<m;i++){
-		for(int j=0;j<row[i];j++){
-			printf("%d ",CN_set[i][j]);
-			
-		}
-		printf("\n");
-	}
-	*/
 	fclose(fp1);
-	
-	
-
-
 	//***************************************************************************
-	//channel information
+	//SNR
+	const int SNR_L = 3;
+	double *SNR_dB = (double *)malloc(sizeof(double) * SNR_L);
+	SNR_dB[0] = 0;
+	SNR_dB[1] = 0.4;
+	SNR_dB[2] = 0.8;
+	// SNR_dB[3] = 2.5;
+	// SNR_dB[4] = 3;
+	
+	//**********************************************
+	//平均 iteration 
+	double *avgIter = (double *)malloc(sizeof(double) * SNR_L);
+	
+	int numtime =500;
+	int iteration = 50;	
+	
+	double *BER = (double*)malloc(sizeof(double) * SNR_L);
+	double *FER = (double*)malloc(sizeof(double) * SNR_L);
+
+	// Start Record the time
+    time_t  start = clock();
+	
+	LDPC_SPA(BER,FER, n, m, dv, dc, R,CN_set, VN_set, row, col, avgIter, SNR_dB, SNR_L, iteration, numtime);
+
+	// Record the end time
+    time_t end = clock();
+
+    double diff = end - start; // ms
+    printf(" %f  sec", diff / CLOCKS_PER_SEC );
+    
+	
+	
+	//寫入檔案 CSV
+	FILE *fp = fopen("LDPC_SPA.csv", "w");
+    
+    //避免開啟失敗 
+    if (fp == NULL) {
+        fprintf(stderr, "fopen() failed.\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    
+    for(int i=0;i<4;i++){
+    	//printf("%d %d\n",q++,H[i][0]);
+		for(int j=0;j<SNR_L;j++){
+			if(i==0)
+				fprintf(fp, "%f,",SNR_dB[j]);
+			else if(i==1)
+				fprintf(fp, "%E,",BER[j]);
+			else if(i==2)
+				fprintf(fp, "%E,",FER[j]);
+			//else
+				//fprintf(fp, "%E,",avgIter[j]/numtime);
+				
+		}	
+		
+		fprintf(fp, "\n");
+	}
+	
+	fclose(fp);
+	
+	
+	return 0;
+}
+
+void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** CN_set,int** VN_set,int* row,int* col,double* avgIter,double* SNR_dB,int SNR_L
+,int iteration,int numtime){
+		//channel information
 	double* Fn = (double *)malloc(sizeof(double) * n);
 	//tau
 	double** tau= (double **)malloc(sizeof(double*) * m);
@@ -141,35 +181,7 @@ int main(){
 	
 	double *y = (double*)malloc(sizeof(double) * n);
 	
-	//**********************************************
-	
-	
-	
-	//SNR
-	const int SNR_L = 1;
-	double *SNR_dB = (double *)malloc(sizeof(double) * SNR_L);
-	/*
-	SNR_dB[0] = 4;
-	SNR_dB[1] = 4.5;
-	
-	SNR_dB[2] = 3.5;
-	
-	SNR_dB[3] = 4.5;
-	
-	SNR_dB[4] = 1.6;
-	SNR_dB[5] = 2;
-	*/
-	SNR_dB[0] = 4;
-	
-	
-	//**********************************************
-	//平均 iteration 
-	double *avgIter = (double *)malloc(sizeof(double) * SNR_L);
-	
-	
-	
 	//sigal;
-	
 	//假設全為 0
 	int *u = (int*)malloc(sizeof(int) * n);	//binary sequence
 	int *x = (int*)malloc(sizeof(int) * n);
@@ -179,17 +191,6 @@ int main(){
 		x[i] = 1;		//Eb=1	Eav = R*1
 	} 
 	
-	
-	
-	//**********************************************
-	
-	int numtime =10000;
-	int iteration = 50;	
-	
-	
-	double *BER = (double*)malloc(sizeof(double) * SNR_L);
-	double *FER = (double*)malloc(sizeof(double) * SNR_L);
-
 	for(int q=0;q<SNR_L;q++){
 		
 		avgIter[q] = 0;
@@ -284,23 +285,15 @@ int main(){
 						//計算完tau 
 						//CN[j][i] = log((1.0+tau[j][i])/(1.0-tau[j][i]));
 						if(tau[j][i]==1)
-							CN[j][i] = 19.07;
+							CN[j][i] = 100;
 						else if(tau[j][i]==-1)
-							CN[j][i] = -19.07;
+							CN[j][i] = -100;
 						else
 							CN[j][i] = 2*atanh(tau[j][i]);
 						//printf("\n");
 						
 					}
 				}
-				/*
-				for(int j=0;j<(n-k);j++){
-					for(int i=0;i<dc;i++){	
-						printf("%e ",CN[j][i]);	
-					}
-					printf("\n");	
-				}
-				*/
 				
 				//VN update
 	
@@ -332,16 +325,6 @@ int main(){
 					}
 					
 				}
-				
-				/*
-				for(int i=0;i<10;i++){
-					
-						printf("%e ",VN[i][1943]);	
-					
-					printf("\n");	
-				}
-				*/
-				
 				
 				//total LLR
 				//decode
@@ -411,60 +394,14 @@ int main(){
 					
 			}
 			
-			
 		}
 		
-		
-	
 		BER[q] = ((double)error)/((double)n*numtime);
 		FER[q] = ((double)frameerror)/((double)numtime);
-		
 		printf("BER: %E, FER: %E Average iteration: %f\n",BER[q],FER[q],avgIter[q]/numtime);
 	
-	
 	} 
-	
-	// Record the end time
-    time_t end = clock();
-
-    double diff = end - start; // ms
-    printf(" %f  sec", diff / CLOCKS_PER_SEC );
-    
-	
-	
-	//寫入檔案 CSV
-	FILE *fp = fopen("LDPC_SPA.csv", "w");
-    
-    //避免開啟失敗 
-    if (fp == NULL) {
-        fprintf(stderr, "fopen() failed.\n");
-        exit(EXIT_FAILURE);
-    }
-    
-    
-    for(int i=0;i<4;i++){
-    	//printf("%d %d\n",q++,H[i][0]);
-		for(int j=0;j<SNR_L;j++){
-			if(i==0)
-				fprintf(fp, "%f,",SNR_dB[j]);
-			else if(i==1)
-				fprintf(fp, "%E,",BER[j]);
-			else if(i==2)
-				fprintf(fp, "%E,",FER[j]);
-			//else
-				//fprintf(fp, "%E,",avgIter[j]/numtime);
-				
-		}	
-		
-		fprintf(fp, "\n");
-	}
-	
-	fclose(fp);
-	
-	
-	return 0;
 }
-
 
 
 

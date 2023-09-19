@@ -18,7 +18,7 @@ int main(){
 	//LDPC
 	//BPSK 1 or -1
 	
-	FILE *fp1 = fopen("H_1944_972.txt", "r");
+	FILE *fp1 = fopen("H_96_48_1.txt", "r");
 	if (fp1 == NULL) {
         fprintf(stderr, "fopen() failed.\n");
         exit(EXIT_FAILURE);
@@ -146,19 +146,19 @@ int main(){
 
 	
 	//SNR
-	const int SNR_L = 1;
+	const int SNR_L = 5;
 	double *SNR_dB = (double *)malloc(sizeof(double) * SNR_L);
-	/*
-	SNR_dB[0] = 0;
-	SNR_dB[1] = 0.4;
-	SNR_dB[2] = 0.8;
 	
-	SNR_dB[3] = 1.2;
+	SNR_dB[0] = 1;
+	SNR_dB[1] = 1.5;
+	SNR_dB[2] = 2;
 	
-	SNR_dB[4] = 1.6;
-	SNR_dB[5] = 2;
-	*/
-	SNR_dB[0] = 2;
+	SNR_dB[3] = 2.5;
+	
+	SNR_dB[4] = 3;
+	
+	
+	//SNR_dB[0] = 2;
 
 	
 	//**********************************************
@@ -173,17 +173,17 @@ int main(){
 	int *x = (int*)malloc(sizeof(int) * n);
 	
 	for(int i=0;i<n;i++){
-		u[i] = 0;
-		x[i] = 1;		//Eb=1	Eav = R*1
+		u[i] = 1;
+		x[i] = -1;		//Eb=1	Eav = R*1
 	} 
 	
 	
 	
 	//**********************************************
 	
-	int numtime =500000;
-	int iteration = 50;	
-	double normalfactor = 0.75;
+	int numtime =5000;
+	int iteration = 20;	
+	double normalfactor = 0.8;
 	
 	double *BER = (double*)malloc(sizeof(double) * SNR_L);
 	double *FER = (double*)malloc(sizeof(double) * SNR_L);
