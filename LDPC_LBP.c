@@ -16,9 +16,6 @@ int main(){
     time_t  start = clock();
 	
 	//***************************************************************************
-	//LDPC
-	//BPSK 1 or -1
-	
 	FILE *fp1 = fopen("H_96_48_1.txt", "r");
 	if (fp1 == NULL) {
         fprintf(stderr, "fopen() failed.\n");
@@ -147,20 +144,21 @@ int main(){
 
 	
 	//SNR
-	const int SNR_L = 5;
+	const int SNR_L = 1;
 	double *SNR_dB = (double *)malloc(sizeof(double) * SNR_L);
+	/*
+	SNR_dB[0] = 0;
+	SNR_dB[1] = 0.4;
 	
-	SNR_dB[0] = 1;
-	SNR_dB[1] = 1.5;
-	SNR_dB[2] = 2;
+	SNR_dB[2] = 0.8;
 	
-	SNR_dB[3] = 2.5;
+	SNR_dB[3] = 1.2;
 	
-	SNR_dB[4] = 3;
+	SNR_dB[4] = 1.6;
+	SNR_dB[5] = 2;
+	*/
+	SNR_dB[0] = 0;
 	
-	
-	//SNR_dB[0] = 2;
-
 	
 	//**********************************************
 	//平均 iteration 
@@ -174,17 +172,17 @@ int main(){
 	int *x = (int*)malloc(sizeof(int) * n);
 	
 	for(int i=0;i<n;i++){
-		u[i] = 1;
-		x[i] = -1;		//Eb=1	Eav = R*1
+		u[i] = 0;
+		x[i] = 1;		//Eb=1	Eav = R*1
 	} 
 	
 	
 	
 	//**********************************************
 	
-	int numtime =5000;
-	int iteration = 20;	
-	double normalfactor = 0.8;
+	int numtime =100;
+	int iteration = 50;	
+	
 	
 	double *BER = (double*)malloc(sizeof(double) * SNR_L);
 	double *FER = (double*)malloc(sizeof(double) * SNR_L);
@@ -232,11 +230,8 @@ int main(){
 			
 			//initialization
 			for(int i=0;i<n;i++){
-				VN_total[i] = 2*y[i]/(pow(sigma,2));	
-				for(int j=0;j<col[i];j++){
-						
-					VN[i][j] =  2*y[i]/(pow(sigma,2));
-				}
+				VN_total[i] = 2*y[i]/(pow(sigma,2));
+				
 			}
 			
 			for(int j=0;j<m;j++){	
@@ -250,6 +245,9 @@ int main(){
 			
 			for(iter=0;iter<iteration;iter++){
 				
+				
+				
+				
 				//CN update	
 				for(int j=0;j<m;j++){	
 					for(int i=0;i<row[j];i++){
@@ -257,11 +255,9 @@ int main(){
 						tau[j][i] = 1;	
 					}
 				}
-			
+				
 				
 				for(int j=0;j<m;j++){					//go through all CN	
-				
-				
 				
 				
 					//對此CN 相連之VN 先update (用上一個 layer 所得之 VN_total 
@@ -284,13 +280,9 @@ int main(){
 										
 						}
 					}
-				
-				
-				
+					
 					for(int i=0;i<row[j];i++){				//相連之 VN 
 						
-							double min_beta = DBL_MAX;
-							int sign = 1;				//代表VN_update 正負號之相乘 
 							
 							//printf("CN:%d to VN:%d\n",j,CN_set[j][i]);
 							int VN_node,VN_idex;
@@ -308,52 +300,59 @@ int main(){
 											//找到VN 中之index 
 											//printf("VN_set idex: %d\n",f);
 											VN_idex = f;
-											
-											
+						
 											break;
 										}
 										
 									}	
 									
 								}
-								
-								
-								else{									//n != n'
+								//else if(CN_set[j][i]!=CN_set[j][np])
+								else{	//n != n'
 									
 									//printf("VN:%d to CN:%d\n",CN_set[j][np],j); //N(m) set
 									for(int f=0;f<col[CN_set[j][np]];f++){
 										//找到VN 中之index 
 										if(VN_set[CN_set[j][np]][f]==j){
 											
-											//printf("VN idex: %d\n",f);
-											if(fabs(VN[CN_set[j][np]][f])<min_beta)
-												min_beta = fabs(VN[CN_set[j][np]][f] );
-											if(VN[CN_set[j][np]][f]<0)
-												sign*=-1;
+											//printf("VN_set idex: %d\n",f);
+											tau[j][i] *=tanh(VN[CN_set[j][np]][f]/2);	
 											
 										}
 										
 									}	
 								}
 									
+									
 							}
+							
 							//計算完tau 
-							CN[j][i] =  sign*min_beta*normalfactor;
+							//printf("%f\n",tau[j][i]);
+							
+							if(tau[j][i]==1)
+								CN[j][i] = DBL_MAX;
+							else if(tau[j][i]==-1)
+								CN[j][i] = -DBL_MAX;
+							else
+								CN[j][i] = 2*atanh(tau[j][i]);
 							
 							//printf("VN node %d VN_idex %d\n",VN_node,VN_idex);
 							VN_total[VN_node] = VN[VN_node][VN_idex] + CN[j][i];
-							//printf("\n");
+							
 					}
 				}
+				
+				
 				/*
-				for(int j=0;j<(n-k);j++){
-						
-						printf("%f ",CN[j][0]);	
+				for(int j=0;j<m;j++){
+					
+						printf("%e ",CN[j][0]);	
 					
 					printf("\n");	
 				}
 				*/
 				
+
 				
 				//total LLR
 				//decode
@@ -432,7 +431,7 @@ int main(){
 	
 	
 	//寫入檔案 CSV
-	FILE *fp = fopen("LDPC_1944_Layered_NMSA.csv", "w");
+	FILE *fp = fopen("LDPC_1944_Layered_BP.csv", "w");
     
     //避免開啟失敗 
     if (fp == NULL) {
@@ -468,4 +467,3 @@ int main(){
 
 
 
- 

@@ -162,11 +162,6 @@ void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** C
 ,int iteration,int numtime){
 	//channel information
 	double* Fn = (double *)malloc(sizeof(double) * n);
-	//tau
-	double** tau= (double **)malloc(sizeof(double*) * m);
-	for(int i=0;i<m;i++){
-		tau[i] = (double *)malloc(sizeof(double) * dc);
-	}
 	
 	//CN update //CN[j][i]  CN j to CN i
 	double** CN = (double **)malloc(sizeof(double*) * m);
@@ -251,46 +246,54 @@ void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** C
 			for(iter=0;iter<iteration;iter++){
 				
 				//CN update	
-				for(int j=0;j<m;j++){	
+				for(int j=0;j<(m);j++){	
 					for(int i=0;i<row[j];i++){
-						tau[j][i]=1;	
+						CN[j][i]=1;	
 					}
 				}
 			
 				
-				for(int j=0;j<m;j++){						//go through all CN	
+				for(int j=0;j<m;j++){				//go through all CN	
 					for(int i=0;i<row[j];i++){				//相連之 VN 
-
 						
-							//printf("CN:%d to VN:%d\n",j,CN_set[j][i]);
-							for(int np=0 ; np<row[j] ; np++){			//n'
-								if(CN_set[j][np]>=0&&CN_set[j][i]!=CN_set[j][np]){	//n != n'
-									
-									//printf("VN:%d to CN:%d\n",CN_set[j][np],j); //N(m) set
-									for(int f=0;f<col[CN_set[j][np]];f++){
-										//找到VN 中之index 
-										if(VN_set[CN_set[j][np]][f]==j){
-											
-											tau[j][i] *=tanh(VN[CN_set[j][np]][f]/2);	
-											
-										}
-										
-									}
-											
-								}		
-							}
+                        double min_beta = pow(10,5);
+                        //printf("CN:%d to VN:%d\n",j,CN_set[j][i]);
+                        for(int np=0 ; np<row[j] ; np++){			//n'
+                            if(CN_set[j][np]>=0&&CN_set[j][i]!=CN_set[j][np]){	//n != n'
+                                
+                                //printf("VN:%d to CN:%d\n",CN_set[j][np],j); //N(m) set
+                                for(int f=0;f<col[CN_set[j][np]];f++){
+                                    //找到VN 中之index 
+                                    if(VN_set[CN_set[j][np]][f]==j){
+                                        
+                                        //printf("%d %d\n",CN_set[j][np],f);
+                                        double temp_min = fabs(VN[CN_set[j][np]][f]);
+                                        if(temp_min<min_beta)
+                                            min_beta = temp_min;
+                                        if(VN[CN_set[j][np]][f]<0)
+                                            CN[j][i]*=-1;
+                                        
+                                    }
+                                    
+                                }
+                                        
+                            }		
+                        }
 						
 						//計算完tau 
-						//CN[j][i] = log((1.0+tau[j][i])/(1.0-tau[j][i]));
-						if(tau[j][i]==1)
-							CN[j][i] = DBL_MAX;
-						else if(tau[j][i]==-1)
-							CN[j][i] = -DBL_MAX;
-						else
-							CN[j][i] = 2*atanh(tau[j][i]);
+						CN[j][i] *= min_beta;
+						
 						
 					}
 				}
+				/*
+				for(int j=0;j<(m);j++){
+					for(int i=0;i<dc;i++){	
+						printf("%e ",CN[j][i]);	
+					}
+					printf("\n");	
+				}
+				*/
 				
 				//VN update
 	
