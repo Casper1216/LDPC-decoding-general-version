@@ -245,39 +245,28 @@ int main(){
 			
 			for(iter=0;iter<iteration;iter++){
 				
-				
-				
-				
 				//CN update	
 				for(int j=0;j<m;j++){	
 					for(int i=0;i<row[j];i++){
-						
 						tau[j][i] = 1;	
 					}
 				}
-				
-				
+					
 				for(int j=0;j<m;j++){					//go through all CN	
 				
-				
 					//對此CN 相連之VN 先update (用上一個 layer 所得之 VN_total 
-					
 					for(int i=0;i<row[j];i++){				//相連之 VN
 					
 						//printf("CN:%d to VN:%d\n",j,CN_set[j][i]);
 						for(int f=0;f<col[CN_set[j][i]];f++){
-							
-										
+				
 							if(VN_set[CN_set[j][i]][f]==j){
 								//找到VN 中之index 
 								
 								//printf("update VN %d to CN %d\n" ,CN_set[j][i],j);
-								
 								//printf("VN_set idex: %d\n",f);
-								VN[CN_set[j][i]][f] = VN_total[CN_set[j][i]] - CN[j][i];
-											
+								VN[CN_set[j][i]][f] = VN_total[CN_set[j][i]] - CN[j][i];			
 							}
-										
 						}
 					}
 					
@@ -321,9 +310,7 @@ int main(){
 										}
 										
 									}	
-								}
-									
-									
+								}	
 							}
 							
 							//計算完tau 
@@ -414,7 +401,7 @@ int main(){
 		
 		
 	
-		BER[q] = ((double)error)/((double)n*numtime);
+		BER[q] = ((double)error)/(double)n/(double)numtime;
 		FER[q] = ((double)frameerror)/((double)numtime);
 		
 		printf("BER: %E, FER: %E Average iteration: %f\n",BER[q],FER[q],avgIter[q]/numtime);

@@ -415,7 +415,7 @@ int main(){
 		
 		
 	
-		BER[q] = ((double)error)/((double)n*numtime);
+		BER[q] = ((double)error)/(double)n/(double)numtime;
 		FER[q] = ((double)frameerror)/((double)numtime);
 		
 		printf("BER: %E, FER: %E Average iteration: %f\n",BER[q],FER[q],avgIter[q]/numtime);

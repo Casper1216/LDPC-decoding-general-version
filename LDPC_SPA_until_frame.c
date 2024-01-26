@@ -6,8 +6,10 @@
 #include<stdbool.h>
 #define pi acos(-1)
 
+//run until specified frameerror
+
 void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** CN_set,int** VN_set,int* row,int* col,double* avgIter,double* SNR_dB,int SNR_L
-,int iteration, int numtime);
+,int iteration, int frameerror);
 
 
 int main(){
@@ -15,14 +17,7 @@ int main(){
 	//LDPC
 	//BPSK 1 or -1
 	
-	//long long e = 61;
-	//long long num = 4780000;
-	//int n1=450;
-	//printf("error: %E",(double)e/(n1*num));
-	//system("pause");
-	
-	
-	FILE *fp1 = fopen("BT_QC_PEG.txt", "r");
+	FILE *fp1 = fopen("H_1944_972.txt", "r");
 	if (fp1 == NULL) {
         fprintf(stderr, "fopen() failed.\n");
         exit(EXIT_FAILURE);
@@ -97,7 +92,7 @@ int main(){
 	//SNR
 	const int SNR_L = 1;
 	double *SNR_dB = (double *)malloc(sizeof(double) * SNR_L);
-	SNR_dB[0] = 5.5;
+	SNR_dB[0] = 1.2;
 	//SNR_dB[1] = 3;
 	//SNR_dB[2] = 2;
 	// SNR_dB[3] = 2.5;
@@ -107,8 +102,8 @@ int main(){
 	//平均 iteration 
 	double *avgIter = (double *)malloc(sizeof(double) * SNR_L);
 	
-	int numtime =10000;
-	int iteration = 50;	
+	int frameerror 	= 100;
+	int iteration 	= 50;	
 	
 	double *BER = (double*)malloc(sizeof(double) * SNR_L);
 	double *FER = (double*)malloc(sizeof(double) * SNR_L);
@@ -116,7 +111,7 @@ int main(){
 	// Start Record the time
     time_t  start = clock();
 	
-	LDPC_SPA(BER,FER, n, m, dv, dc, R,CN_set, VN_set, row, col, avgIter, SNR_dB, SNR_L, iteration, numtime);
+	LDPC_SPA(BER,FER, n, m, dv, dc, R,CN_set, VN_set, row, col, avgIter, SNR_dB, SNR_L, iteration, frameerror);
 
 	// Record the end time
     time_t end = clock();
@@ -127,7 +122,7 @@ int main(){
 	
 	
 	//寫入檔案 CSV
-	FILE *fp = fopen("BT_QC_PEG.csv", "w");
+	FILE *fp = fopen("LDPC_SPA.csv", "w");
     
     //避免開啟失敗 
     if (fp == NULL) {
@@ -145,11 +140,8 @@ int main(){
 				fprintf(fp, "%E,",BER[j]);
 			else if(i==2)
 				fprintf(fp, "%E,",FER[j]);
-			//else
-				//fprintf(fp, "%E,",avgIter[j]/numtime);
 				
 		}	
-		
 		fprintf(fp, "\n");
 	}
 	
@@ -159,9 +151,14 @@ int main(){
 }
 
 void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** CN_set,int** VN_set,int* row,int* col,double* avgIter,double* SNR_dB,int SNR_L
-,int iteration,int numtime){
+,int iteration,int frameerror){
 	//channel information
 	double* Fn = (double *)malloc(sizeof(double) * n);
+	//tau
+	double** tau= (double **)malloc(sizeof(double*) * m);
+	for(int i=0;i<m;i++){
+		tau[i] = (double *)malloc(sizeof(double) * dc);
+	}
 	
 	//CN update //CN[j][i]  CN j to CN i
 	double** CN = (double **)malloc(sizeof(double*) * m);
@@ -201,10 +198,11 @@ void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** C
 	for(int q=0;q<SNR_L;q++){
 		
 		avgIter[q] = 0;
-		long long error=0;
-		long long frameerror=0;
+		int error=0;
+		int temp_frameerror=0;
 		int count = 0;
-		for(long long num=0;num<numtime;num++){
+		long long numtime = 0;
+		while(temp_frameerror<frameerror){
 			
 			
 			double U ,V ;
@@ -246,54 +244,46 @@ void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** C
 			for(iter=0;iter<iteration;iter++){
 				
 				//CN update	
-				for(int j=0;j<(m);j++){	
+				for(int j=0;j<m;j++){	
 					for(int i=0;i<row[j];i++){
-						CN[j][i]=1;	
+						tau[j][i]=1;	
 					}
 				}
 			
 				
-				for(int j=0;j<m;j++){				//go through all CN	
+				for(int j=0;j<m;j++){						//go through all CN	
 					for(int i=0;i<row[j];i++){				//相連之 VN 
+
 						
-                        double min_beta = pow(10,5);
-                        //printf("CN:%d to VN:%d\n",j,CN_set[j][i]);
-                        for(int np=0 ; np<row[j] ; np++){			//n'
-                            if(CN_set[j][np]>=0&&CN_set[j][i]!=CN_set[j][np]){	//n != n'
-                                
-                                //printf("VN:%d to CN:%d\n",CN_set[j][np],j); //N(m) set
-                                for(int f=0;f<col[CN_set[j][np]];f++){
-                                    //找到VN 中之index 
-                                    if(VN_set[CN_set[j][np]][f]==j){
-                                        
-                                        //printf("%d %d\n",CN_set[j][np],f);
-                                        double temp_min = fabs(VN[CN_set[j][np]][f]);
-                                        if(temp_min<min_beta)
-                                            min_beta = temp_min;
-                                        if(VN[CN_set[j][np]][f]<0)
-                                            CN[j][i]*=-1;
-                                        
-                                    }
-                                    
-                                }
-                                        
-                            }		
-                        }
+							//printf("CN:%d to VN:%d\n",j,CN_set[j][i]);
+							for(int np=0 ; np<row[j] ; np++){			//n'
+								if(CN_set[j][np]>=0&&CN_set[j][i]!=CN_set[j][np]){	//n != n'
+									
+									//printf("VN:%d to CN:%d\n",CN_set[j][np],j); //N(m) set
+									for(int f=0;f<col[CN_set[j][np]];f++){
+										//找到VN 中之index 
+										if(VN_set[CN_set[j][np]][f]==j){
+											
+											tau[j][i] *=tanh(VN[CN_set[j][np]][f]/2);	
+											
+										}
+										
+									}
+											
+								}		
+							}
 						
 						//計算完tau 
-						CN[j][i] *= min_beta;
-						
+						//CN[j][i] = log((1.0+tau[j][i])/(1.0-tau[j][i]));
+						if(tau[j][i]==1)
+							CN[j][i] = DBL_MAX;
+						else if(tau[j][i]==-1)
+							CN[j][i] = -DBL_MAX;
+						else
+							CN[j][i] = 2*atanh(tau[j][i]);
 						
 					}
 				}
-				/*
-				for(int j=0;j<(m);j++){
-					for(int i=0;i<dc;i++){	
-						printf("%e ",CN[j][i]);	
-					}
-					printf("\n");	
-				}
-				*/
 				
 				//VN update
 	
@@ -380,21 +370,21 @@ void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** C
 			
 			for(int i=0;i<n;i++){
 				if(u[i]!=u_hat[i]){
-					frameerror++;
+					temp_frameerror++;
 					break;
 				}
 					
 			}
 			
-			if(count==10000){
-				printf("error: %d, num: %d, BER: %E, FER: %E Average iteration: %f\n",error,num,((double)error)/((double)(n*num)),((double)frameerror)/(num),(double)avgIter[q]/num);
+			if(count==1000){
+				printf("num: %lld, error: %d, framerror: %d, BER: %E, FER: %E, Average iteration: %f\n",numtime,error,temp_frameerror,((double)error/(double)n/(double)numtime),(double)temp_frameerror/(double)numtime,avgIter[q]/(double)numtime);
 				count=0;
 			}
 			count++; 
-			
+			numtime++;
 		}
 		
-		BER[q] = ((double)error)/((double)n*numtime);
+		BER[q] = ((double)error)/(double)n/(double)numtime;
 		FER[q] = ((double)frameerror)/((double)numtime);
 		printf("BER: %E, FER: %E Average iteration: %f\n",BER[q],FER[q],avgIter[q]/numtime);
 	
