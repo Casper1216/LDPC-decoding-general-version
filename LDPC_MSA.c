@@ -3,10 +3,11 @@
 #include<time.h>
 #include<math.h>
 #include<float.h>
+#include<limits.h>
 #include<stdbool.h>
 #define pi acos(-1)
 
-void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** CN_set,int** VN_set,int* row,int* col,double* avgIter,double* SNR_dB,int SNR_L
+void LDPC_MSA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** CN_set,int** VN_set,int* row,int* col,double* avgIter,double* SNR_dB,int SNR_L
 ,int iteration, int numtime);
 
 
@@ -116,7 +117,7 @@ int main(){
 	// Start Record the time
     time_t  start = clock();
 	
-	LDPC_SPA(BER,FER, n, m, dv, dc, R,CN_set, VN_set, row, col, avgIter, SNR_dB, SNR_L, iteration, numtime);
+	LDPC_MSA(BER,FER, n, m, dv, dc, R,CN_set, VN_set, row, col, avgIter, SNR_dB, SNR_L, iteration, numtime);
 
 	// Record the end time
     time_t end = clock();
@@ -158,7 +159,7 @@ int main(){
 	return 0;
 }
 
-void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** CN_set,int** VN_set,int* row,int* col,double* avgIter,double* SNR_dB,int SNR_L
+void LDPC_MSA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** CN_set,int** VN_set,int* row,int* col,double* avgIter,double* SNR_dB,int SNR_L
 ,int iteration,int numtime){
 	//channel information
 	double* Fn = (double *)malloc(sizeof(double) * n);
@@ -256,7 +257,7 @@ void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** C
 				for(int j=0;j<m;j++){				//go through all CN	
 					for(int i=0;i<row[j];i++){				//¬Û³s¤§ VN 
 						
-                        double min_beta = pow(10,5);
+                        double min_beta = DBL_MAX;
                         //printf("CN:%d to VN:%d\n",j,CN_set[j][i]);
                         for(int np=0 ; np<row[j] ; np++){			//n'
                             if(CN_set[j][np]>=0&&CN_set[j][i]!=CN_set[j][np]){	//n != n'

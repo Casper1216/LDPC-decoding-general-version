@@ -7,13 +7,11 @@
 #define pi acos(-1)
 
 
-
+void LDPC_LBP(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** CN_set,int** VN_set,int* row,int* col,double* avgIter,double* SNR_dB,int SNR_L
+,int iteration, int numtime);
 
 int main(){
-	
 	srand(time(0));
-	// Start Record the time
-    time_t  start = clock();
 	
 	//***************************************************************************
 	FILE *fp1 = fopen("H_96_48_1.txt", "r");
@@ -23,8 +21,6 @@ int main(){
     }
     
 	int n,m,dv,dc;
-    
-    
     fscanf(fp1,"%d ",&n);
     fscanf(fp1,"%d ",&m);
     fscanf(fp1,"%d ",&dv);
@@ -32,19 +28,16 @@ int main(){
     
     printf("%d %d %d %d\n",n,m,dv,dc);
     
-    const double R=(double)(n-m)/n; //coderate
-    
+    const double R=(double)(n-m)/n; //code rate
+
     //建立 number of col row nonzero location
-	 
     int* col = (int*)malloc(sizeof(int)*n);		//number of col nonzero 
-    
     for(int i=0;i<n;i++){
     	fscanf(fp1,"%d ",&col[i]);
     	
 	}
 	
 	int* row = (int*)malloc(sizeof(int)*m);		//number of row nonzero 
-    
     for(int i=0;i<m;i++){
     	fscanf(fp1,"%d ",&row[i]);	
 	}	
@@ -61,9 +54,6 @@ int main(){
 		CN_set[i] = (int *)malloc(sizeof(int) * row[i]);
 	}	
 
-	
-	
-	
 	for(int i=0;i<n;i++){
 		for(int j=0;j<col[i];j++){
 			fscanf(fp1,"%d ",&VN_set[i][j]);
@@ -75,7 +65,6 @@ int main(){
 		}
 	}
 	
-	
 	for(int i=0;i<m;i++){
 		for(int j=0;j<row[i];j++){
 			fscanf(fp1,"%d ",&CN_set[i][j]);
@@ -86,30 +75,68 @@ int main(){
 			fscanf(fp1,"%d ",&buffer);	//把多餘的 col idex 用 buffer 消耗掉 
 		}
 	}
-	
-	
-	/*
-	for(int i=0;i<n;i++){
-		for(int j=0;j<col[i];j++){
-			printf("%d ",VN_set[i][j]);
-			
-		}
-		printf("\n");
-	}
-	for(int i=0;i<m;i++){
-		for(int j=0;j<row[i];j++){
-			printf("%d ",CN_set[i][j]);
-			
-		}
-		printf("\n");
-	}
-	*/
 	fclose(fp1);
 	
-	
-
-
 	//***************************************************************************
+	//SNR
+	const int SNR_L = 1;
+	double *SNR_dB = (double *)malloc(sizeof(double) * SNR_L);
+	// SNR_dB[0] = 0;
+	// SNR_dB[1] = 0.4;
+	//***************************************************************************
+	//平均 iteration 
+	double *avgIter = (double *)malloc(sizeof(double) * SNR_L);
+
+	int numtime =100;
+	int iteration = 50;	
+	
+	double *BER = (double*)malloc(sizeof(double) * SNR_L);
+	double *FER = (double*)malloc(sizeof(double) * SNR_L);
+
+	// Start Record the time
+    time_t  start = clock();
+
+	LDPC_LBP(BER,FER, n, m, dv, dc, R,CN_set, VN_set, row, col, avgIter, SNR_dB, SNR_L, iteration, numtime);
+
+	// Record the end time
+    time_t end = clock();
+
+    double diff = end - start; // ms
+    printf(" %f  sec", diff / CLOCKS_PER_SEC );
+ 
+	//寫入檔案 CSV
+	FILE *fp = fopen("LDPC_1944_Layered_BP.csv", "w");
+    
+    //避免開啟失敗 
+    if (fp == NULL) {
+        fprintf(stderr, "fopen() failed.\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    for(int i=0;i<4;i++){
+    	//printf("%d %d\n",q++,H[i][0]);
+		for(int j=0;j<SNR_L;j++){
+			if(i==0)
+				fprintf(fp, "%f,",SNR_dB[j]);
+			else if(i==1)
+				fprintf(fp, "%E,",BER[j]);
+			else if(i==2)
+				fprintf(fp, "%E,",FER[j]);
+			else
+				fprintf(fp, "%E,",avgIter[j]/numtime);
+		}	
+		
+		fprintf(fp, "\n");
+	}
+	fclose(fp);
+
+	return 0;
+}
+
+
+
+void LDPC_LBP(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** CN_set,int** VN_set,int* row,int* col,double* avgIter,double* SNR_dB,int SNR_L
+,int iteration, int numtime){
 	//channel information
 	double* Fn = (double *)malloc(sizeof(double) * n);
 	//tau
@@ -117,96 +144,42 @@ int main(){
 	for(int i=0;i<m;i++){
 		tau[i] = (double *)malloc(sizeof(double) * dc);
 	}
-	
-	
-	
 	//CN update //CN[j][i]  CN j to CN i
 	double** CN = (double **)malloc(sizeof(double*) * m);
 	for(int i=0;i<m;i++){
 		CN[i] = (double *)malloc(sizeof(double) * dc);
 	}
-	
 	//VN update //VN[i][j]  VN i to CN j
 	double** VN = (double **)malloc(sizeof(double*) * n);
 	for(int i=0;i<n;i++){
 		VN[i] = (double *)malloc(sizeof(double) * dv);
 	}
-	
 	//total LLR VN[i]
 	double* VN_total = (double *)malloc(sizeof(double) * n);
-	
 	//decoded sequence
 	int* u_hat = (int *)malloc(sizeof(int) * n);
-	
+	//receive signal
 	double *y = (double*)malloc(sizeof(double) * n);
-	
-	//**********************************************
-
-	
-	//SNR
-	const int SNR_L = 1;
-	double *SNR_dB = (double *)malloc(sizeof(double) * SNR_L);
-	/*
-	SNR_dB[0] = 0;
-	SNR_dB[1] = 0.4;
-	
-	SNR_dB[2] = 0.8;
-	
-	SNR_dB[3] = 1.2;
-	
-	SNR_dB[4] = 1.6;
-	SNR_dB[5] = 2;
-	*/
-	SNR_dB[0] = 0;
-	
-	
-	//**********************************************
-	//平均 iteration 
-	double *avgIter = (double *)malloc(sizeof(double) * SNR_L);
-
-	
-	//sigal;
-	
-	//假設全為 0
+	//noise
+	double* noise = (double *)malloc(sizeof(double) * n);
+	//transmitted sigal;
+	//All 0 codeword
 	int *u = (int*)malloc(sizeof(int) * n);	//binary sequence
 	int *x = (int*)malloc(sizeof(int) * n);
 	
 	for(int i=0;i<n;i++){
 		u[i] = 0;
-		x[i] = 1;		//Eb=1	Eav = R*1
+		x[i] = 1;		//Eb=1	Eavg = R*1
 	} 
-	
-	
-	
-	//**********************************************
-	
-	int numtime =100;
-	int iteration = 50;	
-	
-	
-	double *BER = (double*)malloc(sizeof(double) * SNR_L);
-	double *FER = (double*)malloc(sizeof(double) * SNR_L);
 
 	for(int q=0;q<SNR_L;q++){
 		
 		avgIter[q] = 0;
 		long long error=0;
 		long long frameerror=0;
-		int counting=1;
-		
+		int count = 1;
 		for(int num=0;num<numtime;num++){
 			
-			
-			if(counting==10000){
-				printf("%d\n",counting);
-				counting=0;
-			}
-			counting++;
-			//printf("%d ",num);
-			
-			
-			//noise
-			double* noise = (double *)malloc(sizeof(double) * n);
 			double U ,V ;
 			double sigma = sqrt((1/(2*R))*pow(10,-(SNR_dB[q]/10)));
 			
@@ -227,22 +200,18 @@ int main(){
 				y[i] = x[i] + noise[i];
 				
 			} 
-			
 			//initialization
 			for(int i=0;i<n;i++){
 				VN_total[i] = 2*y[i]/(pow(sigma,2));
-				
 			}
 			
 			for(int j=0;j<m;j++){	
-				for(int i=0;i<row[j];i++){
-						
+				for(int i=0;i<row[j];i++){	
 					CN[j][i] = 0;	
 				}
 			}
 			//iterative decoding
 			int iter=0;
-			
 			for(iter=0;iter<iteration;iter++){
 				
 				//CN update	
@@ -251,7 +220,6 @@ int main(){
 						tau[j][i] = 1;	
 					}
 				}
-					
 				for(int j=0;j<m;j++){					//go through all CN	
 				
 					//對此CN 相連之VN 先update (用上一個 layer 所得之 VN_total 
@@ -271,8 +239,7 @@ int main(){
 					}
 					
 					for(int i=0;i<row[j];i++){				//相連之 VN 
-						
-							
+
 							//printf("CN:%d to VN:%d\n",j,CN_set[j][i]);
 							int VN_node,VN_idex;
 							for(int np=0 ; np<row[j] ; np++){			//n'
@@ -328,34 +295,17 @@ int main(){
 							
 					}
 				}
-				
-				
-				/*
-				for(int j=0;j<m;j++){
-					
-						printf("%e ",CN[j][0]);	
-					
-					printf("\n");	
-				}
-				*/
-				
 
-				
 				//total LLR
 				//decode
 					
 				for(int i=0;i<n;i++){ 				//go through all VN	
-					
-					
 					if(VN_total[i]>=0)
 						u_hat[i] = 0;
 					else
 						u_hat[i] = 1;
 				}
-				
-				
-				
-				
+
 				//判斷symdrome
 				int* s = (int *)malloc(sizeof(int) * m);
 				bool iszerovector = true;
@@ -374,11 +324,9 @@ int main(){
 						break;
 					}	
 				}
-				
 				if(iszerovector){
 					break;
 				}
-				
 			}
 			//printf("%d\n",iter);
 			avgIter[q] +=iter;
@@ -387,70 +335,22 @@ int main(){
 				if(u[i]!=u_hat[i])
 					error++;
 			}
-			
 			for(int i=0;i<n;i++){
 				if(u[i]!=u_hat[i]){
 					frameerror++;
 					break;
 				}
-					
 			}
-			
-			
+			if(count==10000){
+				printf("error: %lld, num: %d, BER: %E, FER: %E Average iteration: %f\n",error,num,((double)error)/((double)(n*num)),((double)frameerror)/(num),(double)avgIter[q]/num);
+				count=0;
+			}
+			count++; 
 		}
-		
-		
-	
 		BER[q] = ((double)error)/(double)n/(double)numtime;
 		FER[q] = ((double)frameerror)/((double)numtime);
-		
 		printf("BER: %E, FER: %E Average iteration: %f\n",BER[q],FER[q],avgIter[q]/numtime);
-	
-	
 	} 
-	
-	// Record the end time
-    time_t end = clock();
-
-    double diff = end - start; // ms
-    printf(" %f  sec", diff / CLOCKS_PER_SEC );
-    
-	
-	
-	//寫入檔案 CSV
-	FILE *fp = fopen("LDPC_1944_Layered_BP.csv", "w");
-    
-    //避免開啟失敗 
-    if (fp == NULL) {
-        fprintf(stderr, "fopen() failed.\n");
-        exit(EXIT_FAILURE);
-    }
-    
-    
-    for(int i=0;i<4;i++){
-    	//printf("%d %d\n",q++,H[i][0]);
-		for(int j=0;j<SNR_L;j++){
-			if(i==0)
-				fprintf(fp, "%f,",SNR_dB[j]);
-			else if(i==1)
-				fprintf(fp, "%E,",BER[j]);
-			else if(i==2)
-				fprintf(fp, "%E,",FER[j]);
-			else
-				fprintf(fp, "%E,",avgIter[j]/numtime);
-		}	
-		
-		fprintf(fp, "\n");
-	}
-
-	fclose(fp);
-	
-	
-	return 0;
 }
-
-
-
-
 
 

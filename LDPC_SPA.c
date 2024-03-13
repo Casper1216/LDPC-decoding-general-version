@@ -98,7 +98,7 @@ int main(){
 	// SNR_dB[3] = 2.5;
 	// SNR_dB[4] = 3;
 	
-	//**********************************************
+	//***************************************************************************
 	//ензб iteration 
 	double *avgIter = (double *)malloc(sizeof(double) * SNR_L);
 	
@@ -203,7 +203,7 @@ void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** C
 		avgIter[q] = 0;
 		long long error=0;
 		long long frameerror=0;
-		int count = 0;
+		int count = 1;
 		for(long long num=0;num<numtime;num++){
 			
 			
