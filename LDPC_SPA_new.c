@@ -7,10 +7,10 @@
 #define pi acos(-1)
 
 //fixed execution time: numtime
+//Reduce VN update complexity
 
 void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** CN_set,int** VN_set,int* row,int* col,double* avgIter,double* SNR_dB,int SNR_L
 ,int iteration, int numtime);
-
 
 int main(){
 	srand(time(0));
@@ -74,7 +74,6 @@ int main(){
 			fscanf(fp1,"%d ",&buffer);	//把多餘的 col idex 用 buffer 消耗掉 
 		}
 	}
-	
 	
 	for(int i=0;i<m;i++){
 		for(int j=0;j<row[i];j++){
@@ -231,30 +230,29 @@ void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** C
 			//initialization
 			for(int i=0;i<n;i++){
 				Fn[i] = 2*y[i]/(pow(sigma,2));	
+				VN_total[i] =  Fn[i]; 	
 				for(int j=0;j<col[i];j++){	
-					
 					VN[i][j] = 2*y[i]/(pow(sigma,2));	
-					
 				}	
 				
 			}
 			
 			//iterative decoding
 			int iter=0;
-			
 			for(iter=0;iter<iteration;iter++){
 				
+
 				//CN update	
 				for(int j=0;j<m;j++){	
 					for(int i=0;i<row[j];i++){
 						tau[j][i]=1;	
 					}
 				}
+			
 				
 				for(int j=0;j<m;j++){						//go through all CN	
 					for(int i=0;i<row[j];i++){				//相連之 VN 
 
-						
 						//printf("CN:%d to VN:%d\n",j,CN_set[j][i]);
 						for(int np=0 ; np<row[j] ; np++){			//n'
 							if(CN_set[j][np]>=0&&CN_set[j][i]!=CN_set[j][np]){	//n != n'
@@ -267,9 +265,7 @@ void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** C
 										tau[j][i] *=tanh(VN[CN_set[j][np]][f]/2);	
 										
 									}
-									
 								}
-										
 							}		
 						}
 						
@@ -284,36 +280,10 @@ void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** C
 						
 					}
 				}
-
-				//VN update
-	
-				for(int i=0;i<n;i++){ 				//go through all VN	
-					for(int j=0;j<col[i];j++){			//相連之 CN 
-						
-							VN[i][j] = Fn[i];	
-							//printf("VN:%d to CN:%d\n",i,VN_set[i][j]);
-							for(int mp=0 ; mp<col[i] ; mp++){			//m'
-								if(VN_set[i][mp]>=0&&VN_set[i][j]!=VN_set[i][mp]){	//m != m'
-									
-									//printf("from CN:%d to VN:%d\n",VN_set[i][mp],i);
-									for(int p=0;p<row[VN_set[i][mp]];p++){
-										//找到 CN 中之index 
-										if(CN_set[VN_set[i][mp]][p]==i){
-										
-											VN[i][j] += CN[VN_set[i][mp]][p];		
-										}
-										
-									}
-											
-								}		
-							}					
-					}
-					
-				}
+				
 
 				//total LLR
 				//decode
-					
 				for(int i=0;i<n;i++){ 				//go through all VN	
 					VN_total[i] =  Fn[i]; 			
 					for(int j=0;j<col[i];j++){				
@@ -332,6 +302,21 @@ void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** C
 						u_hat[i] = 0;
 					else
 						u_hat[i] = 1;
+				}
+				//VN update
+				for(int i=0;i<n;i++){ 				//go through all VN	
+					for(int j=0;j<col[i];j++){			//相連之 CN 
+						
+						//printf("VN:%d to CN:%d\n",i,VN_set[i][j]);
+
+						for(int p=0;p<row[VN_set[i][j]];p++){
+							//找到 CN 中之index 
+							if(CN_set[VN_set[i][j]][p]==i){
+			
+								VN[i][j] = VN_total[i] - CN[VN_set[i][j]][p];		
+							}
+						}
+					}
 				}
 				
 				bool iszerovector = true;
@@ -356,7 +341,6 @@ void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** C
 				}
 				
 			}
-			
 			avgIter[q] +=iter;
 			
 			for(int i=0;i<n;i++){	
@@ -372,8 +356,7 @@ void LDPC_SPA(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** C
 					
 			}
 			
-			
-			printf("error: %d, num: %d, BER: %E, FER: %E Average iteration: %f\r",error,num,((double)error)/((double)(n*num)),((double)frameerror)/(num),(double)avgIter[q]/num);
+			printf("error: %lld, num: %lld, BER: %E, FER: %E Average iteration: %f\r",error,num,((double)error)/((double)(n*num)),((double)frameerror)/(num),(double)avgIter[q]/num);			
 		}
 		
 		BER[q] = ((double)error)/(double)n/(double)numtime;

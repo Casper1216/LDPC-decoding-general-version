@@ -86,7 +86,7 @@ int main(){
 	//SNR
 	const int SNR_L = 1;
 	double *SNR_dB = (double *)malloc(sizeof(double) * SNR_L);
-	SNR_dB[0] = 1.2;
+	SNR_dB[0] = 1.6;
 
 	//**********************************************
 	//ензб iteration 
@@ -103,12 +103,12 @@ int main(){
 	
 
     //***************************************************************************
-	//LDPC_SPA_until_frame(BER,FER, n, m, dv, dc, R,CN_set, VN_set, row, col, avgIter, SNR_dB, SNR_L, iteration, frameerror);
+	LDPC_SPA_until_frame(BER,FER, n, m, dv, dc, R,CN_set, VN_set, row, col, avgIter, SNR_dB, SNR_L, iteration, frameerror);
     //LDPC_SPA(BER,FER, n, m, dv, dc, R,CN_set, VN_set, row, col, avgIter, SNR_dB, SNR_L, iteration, numtime);
     //LDPC_MSA(BER,FER, n, m, dv, dc, R,CN_set, VN_set, row, col, avgIter, SNR_dB, SNR_L, iteration, numtime);
     //LDPC_LBP(BER,FER, n, m, dv, dc, R,CN_set, VN_set, row, col, avgIter, SNR_dB, SNR_L, iteration, numtime);
-    double normalize_factor = 0.75;
-    LDPC_Layered_NMSA(BER,FER, n, m, dv, dc, R,CN_set, VN_set, row, col, avgIter, SNR_dB, SNR_L, iteration, numtime,normalize_factor);
+    //double normalize_factor = 0.75;
+    //LDPC_Layered_NMSA(BER,FER, n, m, dv, dc, R,CN_set, VN_set, row, col, avgIter, SNR_dB, SNR_L, iteration, numtime,normalize_factor);
 
 
     //***************************************************************************
