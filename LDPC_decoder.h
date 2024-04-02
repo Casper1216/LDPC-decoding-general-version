@@ -383,7 +383,7 @@ void LDPC_SPA_until_frame(double* BER,double* FER,int n,int m,int dv,int dc,doub
 	} 
 	for(int q=0;q<SNR_L;q++){
 		avgIter[q] = 0;
-		int error=0;
+		long long error=0;
 		int temp_frameerror=0;
 		long long numtime = 0;
 
@@ -494,7 +494,7 @@ void LDPC_SPA_until_frame(double* BER,double* FER,int n,int m,int dv,int dc,doub
 					break;
 				}
 			}
-			printf("num: %lld, error: %d, framerror: %d, BER: %E, FER: %E, Average iteration: %f\r",numtime,error,temp_frameerror,((double)error/(double)n/(double)numtime),(double)temp_frameerror/(double)numtime,avgIter[q]/(double)numtime);
+			printf("num: %lld, error: %lld, framerror: %d, BER: %E, FER: %E, Average iteration: %f\r",numtime,error,temp_frameerror,((double)error/(double)n/(double)numtime),(double)temp_frameerror/(double)numtime,avgIter[q]/(double)numtime);
 				
 			numtime++;
 		}
@@ -906,7 +906,7 @@ void LDPC_LBP(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** C
 				}
 				for(int j=0;j<m;j++){					//go through all CN	j
 				
-					//對此CN 相連之VN 先update (用上一個 layer 所得之 VN_total 
+					//對此CN 相連之VN 先update 用上一個 layer 所得之 VN_total 
 					for(int i=0;i<row[j];i++){				//VN i connected by CN j
 					
 						for(int f=0;f<col[CN_set[j][i]];f++){
@@ -999,8 +999,7 @@ void LDPC_LBP(double* BER,double* FER,int n,int m,int dv,int dc,double R,int** C
 					break;
 				}
 			}
-			printf("error: %lld, num: %d, BER: %E, FER: %E Average iteration: %f\r",error,num,((double)error)/((double)(n*num)),((double)frameerror)/(num),(double)avgIter[q]/num);
-				
+			printf("error: %lld, num: %d, BER: %E, FER: %E Average iteration: %f\r",error,num,((double)error)/((double)(n*num)),((double)frameerror)/(num),(double)avgIter[q]/num);				
 		}
 		BER[q] = ((double)error)/(double)n/(double)numtime;
 		FER[q] = ((double)frameerror)/((double)numtime);
@@ -1081,7 +1080,7 @@ void LDPC_Layered_NMSA(double* BER,double* FER,int n,int m,int dv,int dc,double 
 				}
 				for(int j=0;j<m;j++){					//go through all CN	j
 
-					//對此CN 相連之VN 先update (用上一個 layer 所得之 VN_total 
+					//對此CN 相連之VN 先update 用上一個 layer 所得之 VN_total 
 					for(int i=0;i<row[j];i++){				//VN i connected by CN j
 					
 						for(int f=0;f<col[CN_set[j][i]];f++){
@@ -1181,7 +1180,6 @@ void LDPC_Layered_NMSA(double* BER,double* FER,int n,int m,int dv,int dc,double 
 					
 			}
 			printf("error: %lld, num: %d, BER: %E, FER: %E Average iteration: %f\r",error,num,((double)error)/((double)(n*num)),((double)frameerror)/(num),(double)avgIter[q]/num);
-				
 		}
 		
 		BER[q] = ((double)error)/(double)n/(double)numtime;
