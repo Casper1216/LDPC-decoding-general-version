@@ -10,12 +10,10 @@
 void Add_AWGN(int n,double* y,int* x,double sigma){
     double U ,V ;
     for(int i=0;i<n;i++){
-        U = (double) rand() / (double)(RAND_MAX);	//uniform (0~1) 0<U<1
-        while(U==0||U==1)
-            U = (double) rand() / (double)(RAND_MAX);	
+        do{
+			U = (double) rand() / (double)(RAND_MAX);	//uniform (0~1) 0<U<1
+		} while (U==0);
         V = (double) rand() / (double)(RAND_MAX);
-        while(V==0||V==1)
-            V = (double) rand() / (double)(RAND_MAX);	
         //AWGN(0,1) =  sqrt(-2*log(U))*cos(2*pi*V)
         y[i] = (double)x[i] + sigma* sqrt(-2*log(U))*cos(2*pi*V);
     } 
